@@ -1,0 +1,101 @@
+{
+  "name": "UnityGaussianSplatting-DX11-VRChat",
+  "version": "0.1.0-preview",
+  "sourceOnly": true,
+  "coreSourcesUnchanged": true,
+  "license": "MIT",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 374,
+      "sha256": "4a7236fab1691e3a465e1c60f0ae075a6d8e9a9a6a6dc805ecada509d7c863b3"
+    },
+    {
+      "path": "DATA_LAYOUT.md",
+      "bytes": 4946,
+      "sha256": "beef18486826fb80a52e29fca5378a111fd7e20fc2ca04266d153edd7bf15c67"
+    },
+    {
+      "path": "Editor/GaussianDX11PackagePreview.cs",
+      "bytes": 6156,
+      "sha256": "e1249eff9ff8c7182493a359e97e448d8c12fd12db1d45a30a6a71b00567b35f"
+    },
+    {
+      "path": "Editor/GaussianDX11PackagePreview.cs.meta",
+      "bytes": 243,
+      "sha256": "31b517ffc06d89de7c727e9be434914424f4a06098f7e1d540acbe4037df24d2"
+    },
+    {
+      "path": "Editor.meta",
+      "bytes": 180,
+      "sha256": "f15f73fdd481cfa99681f2e9acc93b3f536449ba00a68dca519535ae0874b9a4"
+    },
+    {
+      "path": "LICENSE.md",
+      "bytes": 1171,
+      "sha256": "edfca6e816ac21b3d90d70af0e8bc7f0cde56f015c3151d4ce316088865889c7"
+    },
+    {
+      "path": "README.de.md",
+      "bytes": 7444,
+      "sha256": "fa85c7e633c1d5595ed7952fd74a2ba626e19c648de80ddcbeb9318813b652d4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7670,
+      "sha256": "93ad010d5283141e34fd30e609d6df26ed088eb95c77078c2c577d3a45069eaf"
+    },
+    {
+      "path": "Runtime/NeonQuestGaussian.cs",
+      "bytes": 3166,
+      "sha256": "91c2d52c1e2228f64290229ced3626f44f5770337bb933547f93076a15f1b1dc"
+    },
+    {
+      "path": "Runtime/NeonQuestGaussian.cs.meta",
+      "bytes": 243,
+      "sha256": "0b94e1d534431c7f6554b20f7d23444529000bcbd6af43c14a12805c402921b3"
+    },
+    {
+      "path": "Runtime.meta",
+      "bytes": 180,
+      "sha256": "e43dec0b54472de8e7832ecec5e05e2e3de6ddb42ce5d46865ff29f700d72945"
+    },
+    {
+      "path": "Shaders/NeonQuestGaussianSort.shader",
+      "bytes": 1418,
+      "sha256": "840dd01c092d635e95bc4b2b7d7a763b04618d0c733ee73ba68ea738e7decd44"
+    },
+    {
+      "path": "Shaders/NeonQuestGaussianSort.shader.meta",
+      "bytes": 204,
+      "sha256": "2cc40c16c5c7d76448f1c62ed03f8a2acf9fad8567497a08e5a1c647417ba109"
+    },
+    {
+      "path": "Shaders/NeonQuestGaussianSorted.shader",
+      "bytes": 4443,
+      "sha256": "cfa7303b1fecb5cf467fcd46f9b378adc2ca5c6b061a368e91b18c6c2add63b4"
+    },
+    {
+      "path": "Shaders/NeonQuestGaussianSorted.shader.meta",
+      "bytes": 204,
+      "sha256": "a7d70c1e6fb98104efe4b34d8a074be0b94bb0ca1a039a05fe8d258b824c36db"
+    },
+    {
+      "path": "Shaders.meta",
+      "bytes": 180,
+      "sha256": "d433c0ea058af16d3acd0e1820ac28148058de71f4a9d22606176c1ba3d91157"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 1861,
+      "sha256": "e77944cb777ecb419d2bd43e90da65974968331ac89d8b618092157d316688ea"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 2506,
+      "sha256": "dcbbb0523b2d36a8698c192beda8b2fd515bfa461fda322bd527a17e6889333a"
+    }
+  ],
+  "manifestNote": "This manifest does not hash itself.",
+  "testedControllerInstancePassesPerFrame": 32
+}

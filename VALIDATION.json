@@ -1,0 +1,78 @@
+{
+  "version": "0.1.0-preview",
+  "date": "2026-10-09",
+  "editor": {
+    "unity": "2022.3.22f1",
+    "graphicsApi": "Direct3D11",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti",
+    "count": 500000,
+    "capacity": 524288,
+    "comparePasses": 190,
+    "directionChecks": [
+      {
+        "direction": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "errors": 0,
+        "absent": 0,
+        "padding": 24288,
+        "sortAndReadbackMilliseconds": 22.6495
+      },
+      {
+        "direction": [
+          0.310450464,
+          -0.270392358,
+          0.911322355
+        ],
+        "errors": 0,
+        "absent": 0,
+        "padding": 24288,
+        "sortAndReadbackMilliseconds": 50.6373
+      },
+      {
+        "direction": [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        "errors": 0,
+        "absent": 0,
+        "padding": 24288,
+        "sortAndReadbackMilliseconds": 12.2143
+      }
+    ],
+    "shaderMessages": [],
+    "timingCaveat": "sortAndReadbackMilliseconds includes synchronous validation/readback; not pure GPU time or client per-frame cost"
+  },
+  "udon": "Integrated programs compiled; fresh source-only import not independently compiled",
+  "clientReport": {
+    "reporter": "Prempi",
+    "tested": "VRChat client, integrated current renderer",
+    "result": "Works; nearly imperceptible re-sorting delay after viewing direction changes",
+    "modeHeadsetAndClientBuild": "Not recorded",
+    "runtimeGpuFrameTimeMilliseconds": null,
+    "passesPerFrame": 32,
+    "observedLatencySecondsApproximate": 0.1,
+    "reportedFramesPerSecondApproximate": 72,
+    "measurementCaveat": "User observation, not instrumented latency or controlled A/B benchmark; FPS change cannot be conclusively attributed to sort budget",
+    "earlierObservation": {
+      "passesPerFrame": 8,
+      "latencySecondsApproximate": 0.8,
+      "framesPerSecondApproximate": 40
+    },
+    "virtualDesktopFrameRateCap": 72,
+    "viewpoint": "Viewing through windows; visible/rendered splat count not measured",
+    "uncappedMaximumFramesPerSecond": null,
+    "gpuHeadroom": "Not established; reaching configured cap does not quantify spare capacity"
+  },
+  "notSeparatelyValidated": [
+    "fresh source-only installation",
+    "mirrors and handheld cameras",
+    "specific stereo/headset configurations",
+    "lower-end PC performance",
+    "Android/Quest",
+    "other render pipelines or graphics APIs"
+  ]
+}
