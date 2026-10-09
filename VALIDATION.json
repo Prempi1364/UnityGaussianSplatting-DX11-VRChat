@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-preview",
+  "version": "0.1.1-preview",
   "date": "2026-10-09",
   "editor": {
     "unity": "2022.3.22f1",
@@ -47,16 +47,22 @@
     "timingCaveat": "sortAndReadbackMilliseconds includes synchronous validation/readback; not pure GPU time or client per-frame cost"
   },
   "udon": "Integrated programs compiled; fresh source-only import not independently compiled",
-  "clientReport": {
-    "reporter": "Prempi",
+  "notSeparatelyValidated": [
+    "fresh source-only installation",
+    "mirrors and handheld cameras",
+    "specific stereo/headset configurations",
+    "lower-end PC performance",
+    "Android/Quest",
+    "other render pipelines or graphics APIs"
+  ],
+  "clientTest": {
     "tested": "VRChat client, integrated current renderer",
     "result": "Works; nearly imperceptible re-sorting delay after viewing direction changes",
     "modeHeadsetAndClientBuild": "Not recorded",
     "runtimeGpuFrameTimeMilliseconds": null,
     "passesPerFrame": 32,
     "observedLatencySecondsApproximate": 0.1,
-    "reportedFramesPerSecondApproximate": 72,
-    "measurementCaveat": "User observation, not instrumented latency or controlled A/B benchmark; FPS change cannot be conclusively attributed to sort budget",
+    "measurementCaveat": "Visual latency estimate and capped frame-rate observation; not instrumented latency or controlled A/B benchmark. FPS change cannot be conclusively attributed to sort budget.",
     "earlierObservation": {
       "passesPerFrame": 8,
       "latencySecondsApproximate": 0.8,
@@ -65,14 +71,7 @@
     "virtualDesktopFrameRateCap": 72,
     "viewpoint": "Viewing through windows; visible/rendered splat count not measured",
     "uncappedMaximumFramesPerSecond": null,
-    "gpuHeadroom": "Not established; reaching configured cap does not quantify spare capacity"
-  },
-  "notSeparatelyValidated": [
-    "fresh source-only installation",
-    "mirrors and handheld cameras",
-    "specific stereo/headset configurations",
-    "lower-end PC performance",
-    "Android/Quest",
-    "other render pipelines or graphics APIs"
-  ]
+    "gpuHeadroom": "Not established; reaching configured cap does not quantify spare capacity",
+    "observedFramesPerSecondApproximate": 72
+  }
 }

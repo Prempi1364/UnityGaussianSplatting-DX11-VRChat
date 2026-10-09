@@ -1,6 +1,6 @@
 {
   "name": "UnityGaussianSplatting-DX11-VRChat",
-  "version": "0.1.0-preview",
+  "version": "0.1.1-preview",
   "sourceOnly": true,
   "coreSourcesUnchanged": true,
   "license": "MIT",
@@ -37,13 +37,13 @@
     },
     {
       "path": "README.de.md",
-      "bytes": 7444,
-      "sha256": "fa85c7e633c1d5595ed7952fd74a2ba626e19c648de80ddcbeb9318813b652d4"
+      "bytes": 7242,
+      "sha256": "0a5feee5b14193ff6756c10af8eb846d7998fb22589c92009f2be31d589db7db"
     },
     {
       "path": "README.md",
-      "bytes": 7670,
-      "sha256": "93ad010d5283141e34fd30e609d6df26ed088eb95c77078c2c577d3a45069eaf"
+      "bytes": 7309,
+      "sha256": "bdb14abb756e4457006b288a2310e39106fc28f5bf17bbe1bdd3da7e46374cce"
     },
     {
       "path": "Runtime/NeonQuestGaussian.cs",
@@ -92,8 +92,8 @@
     },
     {
       "path": "VALIDATION.json",
-      "bytes": 2506,
-      "sha256": "dcbbb0523b2d36a8698c192beda8b2fd515bfa461fda322bd527a17e6889333a"
+      "bytes": 2442,
+      "sha256": "c86f72b2891ad36a40e89598c4576deddce51d1ed4579302913db35cea03e861"
     }
   ],
   "manifestNote": "This manifest does not hash itself.",

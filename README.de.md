@@ -1,16 +1,16 @@
 # Gaussian Splatting DX11 für VRChat PC
 
-Experimenteller, texturbasierter Gaussian-Renderer von **Prempi**, mit Kovarianzprojektion nach [Aras Pranckevičius' UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting). Ziel: **Direct3D 11, Unity Built-in Render Pipeline und VRChat Worlds/UdonSharp**. Die GPU-Sortierung läuft als Fragmentshader über `VRCGraphics.Blit`, ohne Compute-Shader und ohne gewöhnliche C#-Laufzeit.
+Experimentelles, texturbasiertes Gaussian Splatting mit Kovarianzprojektion nach [Aras Pranckevičius' UnityGaussianSplatting](https://github.com/aras-p/UnityGaussianSplatting). Ziel: **Direct3D 11, Unity Built-in Render Pipeline und VRChat Worlds/UdonSharp**. Die GPU-Sortierung läuft als Fragmentshader über `VRCGraphics.Blit`, ohne Compute-Shader und ohne gewöhnliche C#-Laufzeit.
 
 [English documentation](README.md) · [Datenformat und Einrichtung](DATA_LAYOUT.md) · [MIT-Lizenz](LICENSE.md) · [Urheber und Fremdhinweise](THIRD_PARTY_NOTICES.md)
 
-## Prüfstand
+## Im VRChat-Client getestet
 
-Prempi hat am **9. Oktober 2026** bestätigt, dass der aktuelle integrierte Renderer im **VRChat-Client funktioniert**. Mit **`passesPerFrame = 32`** am Controller war das Nachziehen nahezu nicht mehr wahrnehmbar (geschätzt etwa 0,1 Sekunden); die gemeldete Bildrate lag bei ungefähr **72 FPS**. Zuvor waren es bei 8 Durchläufen ungefähr 0,8 Sekunden und rund 40 FPS. **Virtual Desktop war auf 72 FPS begrenzt**: Die 72 sind die erreichte gemeldete Obergrenze, kein unlimitierter Maximalwert und kein Nachweis weiterer Leistungsreserve. Prempi schaute dabei durch Fenster; die Anzahl sichtbarer/gezeichneter Splats wurde nicht gemessen. Daraus folgt keine Leistungszusage für die gesamte sichtbare Stadt.
+Ich habe den integrierten Renderer am **9. Oktober 2026 im VRChat-Client** getestet. Mit **`passesPerFrame = 32`** war das Nachziehen nach einem Blickwechsel kaum noch wahrnehmbar — visuell geschätzt etwa **0,1 Sekunden**. Die Bildrate erreichte mein **72-FPS-Limit in Virtual Desktop**. Bei der vorherigen Einstellung von 8 Durchläufen waren es ungefähr 0,8 Sekunden und rund 40 FPS.
 
-Das sind Beobachtungen auf Prempis System, kein kontrollierter A/B-Benchmark und keine instrumentierte Latenzmessung. Die höhere Bildrate kann nicht eindeutig der Einstellung zugeschrieben werden; Auflösung, Client-Bedingungen, Synchronisierung und andere Faktoren waren nicht kontrolliert. Client-Version, Headset-/Stereo-Details und genaue GPU-Framezeit sind nicht protokolliert. Ein unabhängiger Neuimport dieser reinen Quellcode-Veröffentlichung wurde nicht getestet.
+Der Blick ging dabei durch Fenster; die Anzahl sichtbarer/gezeichneter Splats wurde nicht gemessen. Die 72 FPS sind die erreichte Obergrenze, kein unlimitierter Maximalwert und kein Benchmark für die gesamte sichtbare Stadt. Der Vergleich war nicht kontrolliert: Auflösung, Client-Bedingungen und andere Faktoren waren nicht vereinheitlicht. Deshalb lässt sich die höhere Bildrate nicht eindeutig der Einstellung zuschreiben. Genaue GPU-Framezeit, Client-Version und Headset-/Stereo-Details wurden nicht protokolliert. Ein frischer Import dieser reinen Quellcode-Veröffentlichung muss noch getestet werden.
 
-Die drei Kernquellen sind unveränderte Kopien des visuell freigegebenen Stands. Die Editor-Prüfung unter **Unity 2022.3.22f1 / DX11 / NVIDIA GeForce RTX 5070 Ti** verwendete **500.000 Splats**, aufgefüllt auf **524.288**. In drei Blickrichtungen gab es keine fehlenden Einträge, keine Sortierfehler und keine Shader-Diagnosen. Die integrierten Udon-Programme kompilierten. Bereinigte Messdaten: [VALIDATION.json](VALIDATION.json).
+Zeichenshader, Sortiershader und Udon-Controller entsprechen den Quellen der funktionierenden Version. Die Editor-Prüfung unter **Unity 2022.3.22f1 / DX11 / NVIDIA GeForce RTX 5070 Ti** verwendete **500.000 Splats**, aufgefüllt auf **524.288**. In drei Blickrichtungen gab es keine fehlenden Einträge, keine Sortierfehler und keine Shader-Diagnosen. Die integrierten Udon-Programme kompilierten. Editor-Messdaten: [VALIDATION.json](VALIDATION.json).
 
 **Die dort aufgeführten 12–51 ms enthalten Sortierung und synchrones GPU-Rücklesen im Editor. Sie sind keine reine GPU-Zeit, keine Kosten pro Frame und kein VRChat-FPS-Benchmark.** Ein belastbares Leistungsbudget für VRChat ist noch nicht bestimmt.
 
@@ -45,6 +45,6 @@ Dies ist der **Quellcode-Kern**, kein fertiges Weltpaket und kein vollständiger
 
 ## Umfang und Lizenz
 
-Controller, zwei Shader, optionale Editor-Vorschau, Unity-Textmetadaten, Dokumentation und SHA-256-Dateiliste. Keine Beispieldaten, Weltdateien, privaten Kontaktdaten, Zugangsdaten, Projektkonfigurationen, Logs, Bilder, Binärdateien oder SDK-Inhalte. Kernquellen unverändert aus dem freigegebenen Stand kopiert.
+Controller, zwei Shader, optionale Editor-Vorschau, Unity-Textmetadaten, Dokumentation und SHA-256-Dateiliste. Keine Beispieldaten, Weltdateien, privaten Kontaktdaten, Zugangsdaten, Projektkonfigurationen, Logs, Bilder, Binärdateien oder SDK-Inhalte. Die Kernquellen bleiben gegenüber dem funktionierenden Stand unverändert.
 
 **MIT**, ursprüngliches Copyright von Aras erhalten, Anpassungen von Prempi, entwickelt mit ChatGPT/Codex-Unterstützung. Andere VRChat-Lösungen existieren bereits, etwa [MichaelMoroz/VRChatGaussianSplatting](https://github.com/MichaelMoroz/VRChatGaussianSplatting). Ein allgemeiner Qualitäts- oder Leistungsvergleich wurde nicht nachgewiesen. Unabhängige Veröffentlichung ohne offizielle VRChat-Zusage oder Behauptung einer weltweit ersten DX11-Implementierung. Rechte an importierten Datensätzen sind gesondert zu prüfen. Details: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
