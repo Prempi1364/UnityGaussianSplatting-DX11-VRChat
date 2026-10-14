@@ -134,8 +134,9 @@ namespace Prempi.GaussianDX11.Editor
                     int budget=order.hasOrder?Mathf.Clamp(source.passesPerFrame,1,32):512;
                     for(int i=0;i<budget&&order.sorting;i++)
                     {
-                        order.sort.SetInt("_Stage",order.stage);order.sort.SetInt("_Step",order.step);Graphics.Blit(order.current,order.next,order.sort,1);
-                        var old=order.current;order.current=order.next;order.next=old;order.step>>=1;
+                        int compareSteps=order.step>=4?3:order.step>=2?2:1;
+                        order.sort.SetInt("_Stage",order.stage);order.sort.SetInt("_Step",order.step);Graphics.Blit(order.current,order.next,order.sort,compareSteps==3?4:compareSteps==2?3:1);
+                        var old=order.current;order.current=order.next;order.next=old;order.step>>=compareSteps;
                         if(order.step==0){order.stage<<=1;order.step=order.stage>>1;}
                         if(order.stage>source.capacity)
                         {
