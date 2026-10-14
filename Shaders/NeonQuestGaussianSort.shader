@@ -10,12 +10,25 @@ Shader "NeonQuest/VRChat/Gaussian Sort"
   Texture2D<float4> _MainTex, _Positions;
   int _Width, _Count, _Stage, _Step;
   float4 _Direction;
+  int _SortMode;
+  float4 _Viewpoint, _ObjectAxisX, _ObjectAxisY, _ObjectAxisZ;
   uint Index(float4 p) { return (uint)p.y * (uint)_Width + (uint)p.x; }
   int3 Pixel(uint i) { return int3(i % (uint)_Width, i / (uint)_Width, 0); }
   float4 Initialize(v2f_img i):SV_Target
   {
    uint id=Index(i.pos);
-   float key=id<(uint)_Count ? -dot(_Positions.Load(Pixel(id)).xyz,_Direction.xyz) : 3.402823e+38;
+   float key=3.402823e+38;
+   if(id<(uint)_Count)
+   {
+    float3 p=_Positions.Load(Pixel(id)).xyz;
+    if(_SortMode==1)
+    {
+     float3 delta=p-_Viewpoint.xyz;
+     float3 worldDelta=delta.x*_ObjectAxisX.xyz+delta.y*_ObjectAxisY.xyz+delta.z*_ObjectAxisZ.xyz;
+     key=-dot(worldDelta,worldDelta);
+    }
+    else key=-dot(p,_Direction.xyz);
+   }
    return float4(key,(float)id,0,0);
   }
   float4 Compare(v2f_img i):SV_Target
@@ -26,6 +39,12 @@ Shader "NeonQuest/VRChat/Gaussian Sort"
    bool aLess=a.x<b.x || (a.x==b.x && a.y<b.y);
    bool takeMin=((id&(uint)_Stage)==0)==((id&(uint)_Step)==0);
    return float4(takeMin ? (aLess?a:b) : (aLess?b:a),0,0);
+  }
+  float4 Publish(v2f_img i):SV_Target
+  {
+   // This is data indexed by texel address. A UV-based image blit may flip
+   // rows between render contexts and change the global point draw order.
+   return _MainTex.Load(Pixel(Index(i.pos)));
   }
   ENDCG
   Pass
@@ -42,6 +61,14 @@ Shader "NeonQuest/VRChat/Gaussian Sort"
    #pragma target 4.0
    #pragma vertex vert_img
    #pragma fragment Compare
+   ENDCG
+  }
+  Pass
+  {
+   CGPROGRAM
+   #pragma target 4.0
+   #pragma vertex vert_img
+   #pragma fragment Publish
    ENDCG
   }
  }
