@@ -4,7 +4,7 @@ Experimentelles, texturbasiertes Gaussian Splatting mit Kovarianzprojektion nach
 
 [English documentation](README.md) · [Datenformat und Einrichtung](DATA_LAYOUT.md) · [MIT-Lizenz](LICENSE.md) · [Urheber und Fremdhinweise](THIRD_PARTY_NOTICES.md)
 
-## Quellcode-Update — 14. Oktober 2026
+## Quellcode-Update — 14. Oktober 2026 (Drei-Schritt-Sortierung)
 
 Der Umfang bleibt der Renderer-Kern: Controller, RGB-Zeichenshader, Sortiershader,
 Editorvorschau und Schutz der Startsortierung. Importer, optionaler SH-Zeichenshader,
@@ -28,10 +28,40 @@ Kopfverfolgung und Physik sowie wiederholte Play-Starts. Alle sichtbaren Rendere
 verwendeten die fertige Sortierung. Vollständiges GPU-Rücklesen prüfte außerdem
 eindeutige Punktnummern und passende Positions-/Tiefenschlüssel. Diese Integration
 nutzt einen separaten SH-Zeichenshader außerhalb dieses Quellpakets.
-Die aktualisierte Welt wurde im VRChat-Client als funktionierend bestätigt; ein
-Nachziehen nach Blickwechseln bleibt sichtbar. Neue FPS- oder instrumentierte
-Latenzmessungen liegen nicht vor. Ein frischer Import des separaten Quellpakets
+Die aktuelle Integration wurde im VRChat-Client als funktionierend und mit
+deutlich kürzerem Nachziehen bestätigt. Das ist eine qualitative Rückmeldung;
+VRChat-FPS und die Gesamtlatenz im Headset wurden nicht instrumentiert gemessen. Ein frischer Import des separaten Quellpakets
 muss weiterhin unabhängig geprüft werden.
+
+### Schnellere Sortierung bei gleichem Budget
+
+Controller und Editorvorschau fassen jetzt **bis zu drei aufeinanderfolgende
+Bitonic-Vergleichsschritte in einem GPU-Durchlauf** zusammen. Die stabile Sortierung
+nach Tiefenschlüssel und Punktnummer sowie die Veröffentlichung einer vollständig
+fertigen Reihenfolge bleiben erhalten. Bei Kapazität 4.194.304 sinkt die Anzahl
+Vergleichsdurchläufe von 253 (ein Schritt) über 132 (zwei Schritte) auf **92 (drei
+Schritte)**. Mit Budget 32 lag die neue Reihenfolge der Integration mit 2.276.102
+Punkten in allen sechs geprüften Blickrichtungen nach **drei ClientSim-Update-Frames**
+vor, gegenüber fünf beim vorherigen Zwei-Schritt-Stand. Alle 139 sichtbaren
+Teilmesh-Materialien verwendeten weiterhin die vollständige Reihenfolge.
+
+Unter echtem DX11 wurden sämtliche Ausgabe-Texel mit der Ein-Schritt-Referenz
+verglichen: fünf Kapazitäten, vier Richtungen, Gegenrichtung, gleiche Tiefenschlüssel
+und Padding. Beide zusammengefassten Varianten stimmten in allen 40 Vergleichen
+exakt überein. Sieben vollständige GPU-Rücklesungen der echten Integration fanden
+keine ungültigen/doppelten IDs, Tiefeninversionen oder falschen Positionsschlüssel.
+Fünf Durchläufe mit wechselnder Variantenreihenfolge ergaben Medianwerte von
+11,21 ms (ein Schritt), 6,72 ms (zwei) und 6,20 ms (drei). Diese isolierten Zeiten
+enthalten CPU-Aufrufe und synchrones GPU-Rücklesen; sie sind **keine VRChat-FPS-
+oder Headset-Latenzmessung**. Details: [VALIDATION.json](VALIDATION.json).
+
+**Bestehende Installation aktualisieren:** Controller, Sortiershader und
+Editorvorschau zusammen ersetzen, die mitgelieferten `.meta`-GUIDs erhalten und
+UdonSharp im Zielprojekt neu kompilieren. Am Controller `passesPerFrame = 32`
+beibehalten. Der schnellere Algorithmus steckt im Quellcode; das Budget einer
+älteren Version allein umzustellen aktiviert ihn nicht. Die vorhandenen
+Splat-Daten und Zeichenmaterialien müssen für diese Sortieränderung nicht neu
+erzeugt werden.
 
 ## Historischer VRChat-Test — 9. Oktober 2026
 
@@ -45,11 +75,21 @@ Diese Beobachtungen betreffen den früheren Quellstand, nicht eine neue Leistung
 
 ## Warum das Nachziehen verzögert ist
 
-Bei 524.288 Einträgen sind **190 vollständige Vergleichsdurchläufe** nötig. **Für den erfolgreich getesteten Stand am Controller `passesPerFrame = 32` einstellen.** Das verteilt die Sortierung auf etwa sechs Update-Frames, zusätzlich zu Initialisierung, Veröffentlichung und Scheduling. Bei 72 Update-Frames pro Sekunde entsprechen sechs Frames ungefähr 83 ms. Das ist eine Rechnung, keine gemessene Gesamtlatenz.
+Bei 524.288 Einträgen sind **190 logische Bitonic-Vergleichsschritte** nötig. Der
+aktuelle Drei-Schritt-Shader erledigt sie in **70 vollständigen GPU-Vergleichsdurchläufen**,
+also drei Update-Frames bei `passesPerFrame = 32`. Das Budget zählt GPU-Durchläufe;
+jeder kann bis zu drei logische Schritte ausführen. Initialisierung und
+Veröffentlichung sind zusätzliche Durchläufe außerhalb dieses Vergleichsbudgets.
 
-Der Initialwert im Quellcode ist jetzt 32. Bereits gespeicherte Instanzen behalten ihren eigenen Wert; mit 8 dauert diese kleinere Sortierung weiterhin etwa 24 Update-Frames. Vor dem Build den Inspector prüfen. Bei einer Kapazität von 4.194.304 benötigt die Integration mit 2.276.102 Punkten 253 Vergleichsdurchläufe, also etwa acht Update-Frames bei Budget 32. Das entspricht rechnerisch ungefähr 89 ms bei 90 FPS oder 133 ms bei 60 FPS, zusätzlich zu Scheduling und eventuell bereits laufender Sortierung. Das sind keine gemessenen Latenzen.
+Der Initialwert bleibt 32. Bereits gespeicherte Instanzen behalten ihren eigenen
+Wert; mit Budget 8 dauert diese kleinere Sortierung etwa neun Update-Frames.
+Vor dem Build den Inspector prüfen. Bei Kapazität 4.194.304 werden aus 253 logischen
+Schritten 92 GPU-Vergleichsdurchläufe: drei Update-Frames bei Budget 32. Drei Frames
+entsprechen rechnerisch ungefähr 33 ms bei 90 FPS oder 50 ms bei 60 FPS, zusätzlich
+zu Scheduling und eventuell bereits laufender Sortierung. Das ist keine gemessene
+Gesamtlatenz im Headset.
 
-Der Renderer zeigt erst eine vollständig fertig sortierte Reihenfolge. Bis dahin bleibt die vorige gültige Reihenfolge sichtbar; schnelle Blickwechsel können Transparenzfehler zeigen. Während der Berechnung wird die anfangs erfasste Blickrichtung verwendet. Bei weiterer Bewegung kann danach eine weitere Sortierung nötig werden. Mehr Durchläufe pro Frame verkürzen die Wartezeit, erhöhen aber die Last pro Frame. Die gesamte Arbeit je Sortierung bleibt gleich. Der Wert ist auf 1–32 begrenzt. Der frühere Client-Vergleich änderte die Instanzeinstellung; dieses Quellcode-Update enthält außerdem die oben beschriebenen Korrekturen.
+Der Renderer zeigt erst eine vollständig fertig sortierte Reihenfolge. Bis dahin bleibt die vorige gültige Reihenfolge sichtbar; schnelle Blickwechsel können Transparenzfehler zeigen. Während der Berechnung wird die anfangs erfasste Blickrichtung verwendet. Bei weiterer Bewegung kann danach eine weitere Sortierung nötig werden. Mehr Durchläufe pro Frame verkürzen die Wartezeit, erhöhen aber die Last pro Frame. Die Anzahl nötiger GPU-Durchläufe je Sortierung bleibt für einen gegebenen Shader-Stand gleich. Der Wert ist auf 1–32 begrenzt. Der frühere Client-Vergleich änderte die Instanzeinstellung; dieses Quellcode-Update enthält außerdem die oben beschriebenen Korrekturen.
 
 Auch das Zeichnen verbraucht GPU-Zeit, besonders bei großen, überlappenden transparenten Splats. Anzahl, Auflösung, Überdeckung, GPU, Avatare und die übrige Welt bestimmen die Kosten. Jeder Besucher sortiert lokal; diese Darstellung muss nicht über das Netzwerk synchronisiert werden.
 

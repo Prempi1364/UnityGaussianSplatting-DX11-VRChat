@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2-preview",
+  "version": "0.1.3-preview",
   "sourceRevisionDate": "2026-10-14",
   "historicalValidation": {
     "version": "0.1.1-preview",
@@ -78,7 +78,7 @@
       "observedFramesPerSecondApproximate": 72
     }
   },
-  "currentIntegratedChecks": {
+  "previousSourceChecks": {
     "unity": "2022.3.22f1",
     "graphicsApi": "Direct3D11",
     "passesPerFrame": 32,
@@ -105,6 +105,82 @@
     "clientObservation": "Updated integration confirmed working in VRChat; turn-related re-sorting delay remains",
     "clientModeHeadsetAndBuild": "Not recorded for the latest maintainer confirmation",
     "newFpsOrInstrumentedLatencyBenchmark": false,
+    "freshStandaloneSourceInstallationTested": false
+  },
+  "currentIntegratedChecks": {
+    "unity": "2022.3.22f1",
+    "graphicsApi": "Direct3D11",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti",
+    "passesPerFrame": 32,
+    "maximumCompareStepsPerBlit": 3,
+    "count": 2276102,
+    "capacity": 4194304,
+    "bitonicCompareSteps": 253,
+    "comparePasses": 92,
+    "initializationAndPublicationBlits": 2,
+    "drawChunks": 139,
+    "syntheticReferenceChecks": {
+      "capacities": [
+        8,
+        16,
+        64,
+        256,
+        4194304
+      ],
+      "directions": 4,
+      "variants": [
+        2,
+        3
+      ],
+      "exactFullTextureMatches": 40,
+      "stableTiesAndPadding": true
+    },
+    "runtimeReadback": {
+      "fullRealSceneOrdersChecked": 7,
+      "invalidIds": 0,
+      "duplicateIds": 0,
+      "keyInversions": 0,
+      "mismatchedSourcePositionKeys": 0
+    },
+    "normalClientSimPlay": {
+      "headings": 6,
+      "sortUpdateFrames": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "turnToPublishFrames": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "previousTwoStepFrames": 5,
+      "trackingAndPhysicsEnabled": true,
+      "boundDrawRenderers": 139,
+      "unboundDrawRenderers": 0
+    },
+    "synchronousCompletionTrials": {
+      "count": 5,
+      "order": "rotated across all three variants",
+      "medianMillisecondsByMaximumSteps": {
+        "1": 11.21,
+        "2": 6.72,
+        "3": 6.2
+      },
+      "caveat": "Isolated synthetic-data CPU dispatch plus synchronous GPU readback; not VRChat FPS, pure GPU time, or headset end-to-end latency"
+    },
+    "udonCompile": "PASS",
+    "officialSdkBuildAndExistingWorldUpdate": "PASS",
+    "integrationDrawShader": "Separate optional SH shader outside this source-core repository",
+    "clientObservation": "Maintainer confirms latest integration works in VRChat with noticeably reduced delay after turns",
+    "clientModeHeadsetAndBuild": "Not recorded for the latest qualitative confirmation",
+    "newVrchatFpsOrHeadsetInstrumentedLatencyBenchmark": false,
     "freshStandaloneSourceInstallationTested": false
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "UnityGaussianSplatting-DX11-VRChat",
-  "version": "0.1.2-preview",
+  "version": "0.1.3-preview",
   "sourceOnly": true,
   "coreSourcesUnchanged": false,
   "sourceRevisionDate": "2026-10-14",
@@ -13,8 +13,8 @@
     },
     {
       "path": "DATA_LAYOUT.md",
-      "bytes": 5577,
-      "sha256": "77bebb61e70dc26473626e3cfbf87c28b318f5d8179e81d7da8cd657c7c82918"
+      "bytes": 6259,
+      "sha256": "f1f92ec8175e67818037bb622ed93e90cf49b819da634a45d522e50649a42bc8"
     },
     {
       "path": "Editor.meta",
@@ -33,8 +33,8 @@
     },
     {
       "path": "Editor/GaussianDX11PackagePreview.cs",
-      "bytes": 10020,
-      "sha256": "d8cd36078b0e389de443cd887fcbaf5d4325060c10514b303abf2020e4323be1"
+      "bytes": 10143,
+      "sha256": "0f84c563de7fe587ade588a284252e3f08e7ccc0192fa6c360bfe7623c1e5574"
     },
     {
       "path": "Editor/GaussianDX11PackagePreview.cs.meta",
@@ -48,13 +48,13 @@
     },
     {
       "path": "README.de.md",
-      "bytes": 9629,
-      "sha256": "87c50d9aa1e0a8e70f17ffe11da839c51b3113031325aff67e373ef906312806"
+      "bytes": 11727,
+      "sha256": "e124f2ad63147a2b8d1ce3beec50c663f3d6ca341a8fddcbbb5df33198e849a0"
     },
     {
       "path": "README.md",
-      "bytes": 9437,
-      "sha256": "2413af1e777f6ba2ece61a6490b7a45e006d69d55a92a98104b1a55e1c7e37ff"
+      "bytes": 11237,
+      "sha256": "92cff8d8708544ff00f339c9238c2bb73e5bf91a0c9da6dcf42677d8385dd9d4"
     },
     {
       "path": "Runtime.meta",
@@ -63,8 +63,8 @@
     },
     {
       "path": "Runtime/NeonQuestGaussian.cs",
-      "bytes": 6603,
-      "sha256": "2501cd9fc7ae990b387634523a4ee6835ffd4aa58b8bbb9f9881d0514e7a24e4"
+      "bytes": 6865,
+      "sha256": "514ed026ff7d6332f8e62107f298985c26d72774df21dce4664ebd1d5a72b6f5"
     },
     {
       "path": "Runtime/NeonQuestGaussian.cs.meta",
@@ -78,8 +78,8 @@
     },
     {
       "path": "Shaders/NeonQuestGaussianSort.shader",
-      "bytes": 2104,
-      "sha256": "a9b2426651d49fe3f64c74480f1b05e543666d2ee4f0662992cbe4a040127d48"
+      "bytes": 3565,
+      "sha256": "f32b2136215991f0bf9f69ca948d8ffe2c640c96d3eeea40082240a1ac6872d5"
     },
     {
       "path": "Shaders/NeonQuestGaussianSort.shader.meta",
@@ -103,10 +103,11 @@
     },
     {
       "path": "VALIDATION.json",
-      "bytes": 3817,
-      "sha256": "ab2946cc2b708e64e2364481f32bab3e8cb3f2f65163425b80119a359d2d5c7b"
+      "bytes": 5934,
+      "sha256": "998bb46f1d4601bbabe2749cbf5278ec0ececed755ac3ce0aa0b2f21d0c2a671"
     }
   ],
   "manifestNote": "This manifest does not hash itself.",
-  "testedControllerInstancePassesPerFrame": 32
+  "testedControllerInstancePassesPerFrame": 32,
+  "maximumCompareStepsPerBlit": 3
 }

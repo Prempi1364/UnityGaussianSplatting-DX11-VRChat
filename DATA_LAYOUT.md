@@ -29,6 +29,17 @@ Use a separate material per chunk with shader **NeonQuest/VRChat/Gaussian Sorted
 
 Create one material with shader **NeonQuest/VRChat/Gaussian Sort** and assign it to `sortMaterial`. The controller configures width/count and direction at runtime. Source data textures are shared; sort targets/materials should belong to that cloud, not be shared between independently sorted clouds.
 
+## Updating an existing installation
+
+Replace `Runtime/NeonQuestGaussian.cs`, `Shaders/NeonQuestGaussianSort.shader` and
+`Editor/GaussianDX11PackagePreview.cs` together, keeping their existing public
+`.meta` GUIDs, then recompile UdonSharp in the destination project. The sorting
+shader retains initialization (pass 0), single comparison (1) and publication (2),
+and adds two-step (3) and three-step (4) comparisons. The updated controller and
+preview select the matching pass; an older shader does not supply the fused passes.
+Keep `passesPerFrame = 32`. The data layout, point meshes and draw-material
+assignments are unchanged by this optimization.
+
 ## Controller fields
 
 | Field | Assignment |
@@ -40,7 +51,7 @@ Create one material with shader **NeonQuest/VRChat/Gaussian Sort** and assign it
 | `positions` | same positions/opacity texture used by draw materials |
 | `workA`, `workB`, `published` | three distinct ordering targets |
 | `count`, `capacity`, `width` | texture and mesh layout parameters |
-| `passesPerFrame` | set instance to **32** for the successful client-tested configuration; source initializer 32; existing serialized values are retained; clamped 1–32 |
+| `passesPerFrame` | GPU compare blits per Update; set instance to **32**; each blit combines up to three bitonic steps; source initializer 32; existing serialized values are retained; clamped 1–32 |
 | `angleThreshold` | default 2 degrees; head turn threshold for another sort |
 
 With the Worlds SDK installed, the runtime uses UdonSharp and requires `Networking.LocalPlayer`. Without the SDK, it uses a MonoBehaviour fallback and `Camera.main`, with private runtime material/render-texture copies. Editor preview is a separate helper, not proof of client compatibility. Do not save temporary preview materials as real assets. Preview is excluded during Play, transitions and SDK builds. Existing meshes with bounds derived from encoded slot indices must have both mesh and point-submesh bounds repaired in the consuming project; copying shader code alone does not repair generated meshes. The order-save guard restores persistent initial-order Texture2D references after Play and before saving.

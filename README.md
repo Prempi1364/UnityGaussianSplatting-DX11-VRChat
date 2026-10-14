@@ -4,7 +4,7 @@ Experimental texture-driven Gaussian splatting, with covariance projection adapt
 
 [Deutsche Beschreibung](README.de.md) · [Data layout and setup](DATA_LAYOUT.md) · [MIT license](LICENSE.md) · [Credits](THIRD_PARTY_NOTICES.md)
 
-## Source update — 14 October 2026
+## Source update — 14 October 2026 (three-step sorting)
 
 This update retains the source-core scope: controller, fixed-RGB draw shader,
 sorting shader, editor preview and original-order save guard. The importer,
@@ -27,9 +27,36 @@ six actual ClientSim Game-camera headings with normal tracking/physics and repea
 Play starts. All visible renderers used the published order. Full runtime readback
 also verified unique point IDs and matching source-position/depth keys. The current
 integration uses a separate SH draw shader that is outside this source-core package.
-The maintainer confirmed that the updated world works in VRChat; re-sorting delay
-after turns remains visible. No new FPS or instrumented latency benchmark was taken.
+The maintainer confirmed that the latest integration works in VRChat and that
+turn-related delay is noticeably reduced. This is qualitative client feedback;
+VRChat FPS and headset end-to-end latency were not instrumented.
 A fresh installation of this standalone source core still needs independent testing.
+
+### Faster sorting without changing the budget
+
+The controller and Editor preview now combine **up to three consecutive bitonic
+compare steps in one GPU blit**. Stable depth/point-ID ordering and completed-order
+publication are preserved. At capacity 4,194,304, this reduces compare blits from
+253 (single-step) to 132 (two-step) to **92 (three-step)**. With budget 32, the
+2,276,102-point integration published its new order in **three ClientSim Update
+frames in all six checked headings**, compared with five for the preceding two-step
+version. All 139 visible chunk materials retained the complete published order.
+
+Real DX11 checks compared every output texel against the single-step reference for
+five capacities and four directions, including reverse views, stable ties and
+padding; both fused variants matched exactly in all 40 comparisons. Seven full
+readbacks of the real integration found no invalid/duplicate IDs, depth inversions
+or mismatched source-position keys. Five rotated synchronous completion trials
+gave medians of 11.21 ms (single-step), 6.72 ms (two-step) and 6.20 ms (three-step).
+These isolated timings include CPU dispatch and GPU readback; they are **not VRChat
+FPS or headset latency measurements**. See [VALIDATION.json](VALIDATION.json).
+
+**Upgrading:** replace the controller, sorting shader and Editor preview together,
+preserve the supplied `.meta` GUIDs, then recompile UdonSharp in the destination
+project. Keep the controller instance at `passesPerFrame = 32`. The faster algorithm
+is built into these sources; changing an older version's budget alone does not
+enable it. Existing prepared splat data and draw materials do not need regeneration
+for this sorting change.
 
 ## Historical VRChat PC test — 9 October 2026
 
@@ -43,11 +70,21 @@ Those observations describe the earlier source revision, not performance measure
 
 ## Sorting cost and visible delay
 
-At capacity 524,288, bitonic sorting requires **190 full-texture compare passes**. **Set the controller instance to `passesPerFrame = 32` to reproduce the tested configuration.** This takes approximately six Update frames per sort, plus initialization/publication and scheduling effects. At 72 Update frames per second, six frames alone correspond to about 83 ms; that is arithmetic, not measured end-to-end latency.
+At capacity 524,288, bitonic sorting has **190 logical compare steps**. The current
+three-step shader performs them in **70 full-texture compare blits**, fitting into
+three Update frames at `passesPerFrame = 32`. The budget counts GPU compare blits;
+each blit can perform up to three logical steps. Initialization and publication
+are additional blits outside that compare budget.
 
-The source initializer is now 32. Existing serialized instances retain their own settings; an instance at 8 still spreads this smaller sort over about 24 Update frames. Check the Inspector before compiling/building. At capacity 4,194,304, the 2,276,102-point integration needs 253 compare passes, or approximately eight Update frames at budget 32. That is about 89 ms at 90 FPS or 133 ms at 60 FPS, before scheduling and any already-running sort; these are calculated values, not measured latency.
+The source initializer remains 32. Existing serialized instances retain their own
+settings; at budget 8 the smaller sort takes approximately nine Update frames.
+Check the Inspector before compiling/building. At capacity 4,194,304, 253 logical
+steps become 92 compare blits: three Update frames at budget 32. Three frames
+correspond arithmetically to about 33 ms at 90 FPS or 50 ms at 60 FPS, before
+scheduling and any already-running sort. These are calculated values, not measured
+headset end-to-end latency.
 
-Only a completed global order is published. Until then, rendering uses the last completed order, so quick head turns can expose incorrect transparency ordering. A sort uses the direction captured at its start; continued movement may require another full sort afterwards. Raising `passesPerFrame` can reduce delay but increases sorting work per frame; total passes per sort remain the same. It is clamped to 1–32. The earlier client comparison changed the instance setting; the current source update also contains the corrections described above.
+Only a completed global order is published. Until then, rendering uses the last completed order, so quick head turns can expose incorrect transparency ordering. A sort uses the direction captured at its start; continued movement may require another full sort afterwards. Raising `passesPerFrame` can reduce delay but increases sorting work per frame; the required compare blits per sort remain the same for a given shader version. It is clamped to 1–32. The earlier client comparison changed the instance setting; the current source update also contains the corrections described above.
 
 Drawing also consumes GPU time: large overlapping transparent splats can create substantial overdraw. Performance depends on splat count, projected size, overlap, resolution, GPU, avatars and the rest of the world. The per-viewer sort is local visual state, with no network synchronization.
 
