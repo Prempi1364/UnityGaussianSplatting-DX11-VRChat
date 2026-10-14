@@ -1,84 +1,164 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+#if VRC_SDK_VRCSDK3
 using UdonSharpEditor;
+using VRC.SDKBase;
+#endif
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Object=UnityEngine.Object;
+using Object = UnityEngine.Object;
 
 namespace Prempi.GaussianDX11.Editor
 {
-    // Editor-only helper for the frozen renderer. No Playmode or scene save.
+    // Preview GPU resources and materials are temporary; original assets stay intact.
     [InitializeOnLoad]
     internal static class GaussianDX11PackagePreview
     {
-        private static NeonQuestGaussian cloud;
-        private static MeshRenderer[] renderers;
-        private static Material[] originals,temporary;
-        private static Material sort;
-        private static RenderTexture a,b;
-        private static Vector3 lastDirection;
-        private static double nextSort;
-        private static double nextResume;
-        private const string ResumeKey="Prempi.GaussianDX11.EditorPreview.Source";
+        private sealed class State
+        {
+            internal NeonQuestGaussian source;
+            internal MeshRenderer[] renderers;
+            internal Material[] originals, materials;
+            internal readonly Dictionary<Camera,CameraOrder> orders=new Dictionary<Camera,CameraOrder>();
+            internal void Restore(){for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].sharedMaterial=originals[i];}
+            internal void Apply(){for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].sharedMaterial=materials[i];}
+            internal void Dispose()
+            {
+                Restore();foreach(var m in materials)Object.DestroyImmediate(m);
+                foreach(var order in orders.Values)order.Dispose();orders.Clear();
+            }
+        }
+        private sealed class CameraOrder
+        {
+            internal Material sort;
+            internal RenderTexture a,b,published,current,next;
+            internal Vector3 direction,pending;
+            internal Vector3 position,pendingPosition;
+            internal bool hasOrder,sorting;
+            internal int stage,step;
+            internal double lastAdvance;
+            internal void Dispose()
+            {
+                Object.DestroyImmediate(sort);
+                foreach(var rt in new[]{a,b,published}){rt.Release();Object.DestroyImmediate(rt);}
+            }
+        }
+        private static readonly Dictionary<int,State> states=new Dictionary<int,State>();
+        private static double nextDiscover;
+        private static bool paused;
         static GaussianDX11PackagePreview()
         {
-            SceneView.duringSceneGui+=Draw;
-            AssemblyReloadEvents.beforeAssemblyReload+=()=>{int id=cloud!=null?cloud.gameObject.GetInstanceID():0;StopCore();SessionState.SetInt(ResumeKey,id);};
-            EditorSceneManager.sceneClosing+=(scene,removing)=>{if(cloud!=null&&cloud.gameObject.scene==scene)Stop();};
-            EditorApplication.playModeStateChanged+=state=>{if(state==PlayModeStateChange.ExitingEditMode)Stop();};
-            EditorApplication.update+=TryResume;
+            Camera.onPreCull+=Render;EditorApplication.update+=Update;
+            AssemblyReloadEvents.beforeAssemblyReload+=Clear;EditorApplication.quitting+=Clear;
+            EditorSceneManager.sceneClosing+=(s,r)=>Clear();EditorApplication.playModeStateChanged+=s=>Clear();
         }
-        private static void TryResume()
+        private static bool CanPreview()
         {
-            if(cloud!=null||EditorApplication.isPlayingOrWillChangePlaymode||EditorApplication.isCompiling||EditorApplication.isUpdating||EditorApplication.timeSinceStartup<nextResume)return;
-            nextResume=EditorApplication.timeSinceStartup+1;int id=SessionState.GetInt(ResumeKey,0);if(id==0)return;
-            var root=EditorUtility.InstanceIDToObject(id) as GameObject;var source=root!=null?root.GetComponent<NeonQuestGaussian>():null;
-            if(source!=null)StartPreview(source);
+            // Temporary editor materials must be restored before Unity clones the
+            // scene for Play. Do not recreate them while ClientSim initializes.
+            if(paused||EditorApplication.isPlayingOrWillChangePlaymode||EditorApplication.isCompiling||EditorApplication.isUpdating||BuildPipeline.isBuildingPlayer||Application.isBatchMode)return false;
+#if VRC_SDK_VRCSDK3
+            if(VRC.SDKBase.Editor.VRC_SdkBuilder.ActiveBuildType!=VRC.SDKBase.Editor.VRC_SdkBuilder.BuildType.None)return false;
+            if(VRCSdkControlPanel.window!=null&&VRCSdkControlPanel.window.PanelState!=VRC.SDKBase.Editor.SdkPanelState.Idle)return false;
+#endif
+            return true;
+        }
+        private static void Update()
+        {
+            if(!CanPreview()){if(states.Count>0)Clear();return;}
+            foreach(int key in states.Where(p=>p.Value.source==null||!p.Value.source.gameObject.activeInHierarchy).Select(p=>p.Key).ToArray())
+            {states[key].Dispose();states.Remove(key);}
+            foreach(var state in states.Values)
+                foreach(var camera in state.orders.Keys.Where(c=>c==null).ToArray())
+                {state.orders[camera].Dispose();state.orders.Remove(camera);}
+            if(EditorApplication.timeSinceStartup<nextDiscover)return;nextDiscover=EditorApplication.timeSinceStartup+1;
+            bool discovered=false;
+            foreach(var source in Resources.FindObjectsOfTypeAll<NeonQuestGaussian>())
+            {
+                if(!source.gameObject.scene.IsValid()||!source.gameObject.scene.isLoaded||!source.gameObject.activeInHierarchy||EditorUtility.IsPersistent(source)||states.ContainsKey(source.GetInstanceID()))continue;
+#if VRC_SDK_VRCSDK3
+                if(!EditorApplication.isPlaying)UdonSharpEditorUtility.CopyUdonToProxy(source);
+#endif
+                if(source.cloud==null||source.positions==null||source.sortMaterial==null||source.drawMaterials==null||source.width<1||source.capacity<2)continue;
+                var renderers=source.cloud.GetComponentsInChildren<MeshRenderer>(true).Where(r=>source.drawMaterials.Contains(r.sharedMaterial)).ToArray();if(renderers.Length==0)continue;
+                var originals=renderers.Select(r=>r.sharedMaterial).ToArray();
+                var state=new State{source=source,renderers=renderers,originals=originals,
+                    materials=originals.Select(m=>new Material(m){hideFlags=HideFlags.HideAndDontSave}).ToArray()};
+                state.Apply();states.Add(source.GetInstanceID(),state);
+                discovered=true;
+            }
+            if(discovered)SceneView.RepaintAll();
+        }
+        private static RenderTexture Target(NeonQuestGaussian source)
+        {
+            var rt=new RenderTexture(source.width,source.capacity/source.width,0,RenderTextureFormat.RGFloat,RenderTextureReadWrite.Linear)
+            {filterMode=FilterMode.Point,wrapMode=TextureWrapMode.Clamp,hideFlags=HideFlags.HideAndDontSave};rt.Create();return rt;
+        }
+        private static void Render(Camera camera)
+        {
+            if(!CanPreview()||camera==null||camera.cameraType==CameraType.Preview)return;
+            var previousTarget=RenderTexture.active;
+            try
+            {
+            var planes=GeometryUtility.CalculateFrustumPlanes(camera);
+            foreach(var state in states.Values)
+            {
+                var source=state.source;
+                if(source==null||!source.gameObject.activeInHierarchy||(source.worldRoot!=null&&!source.worldRoot.activeInHierarchy))continue;
+                if(!state.renderers.Any(r=>r!=null&&r.enabled&&GeometryUtility.TestPlanesAABB(planes,r.bounds)))continue;
+                // Scene, Game and auxiliary cameras must never replace each other's
+                // order. The material binding is switched immediately before drawing.
+                CameraOrder order;
+                if(!state.orders.TryGetValue(camera,out order))
+                {
+                    order=new CameraOrder{sort=new Material(source.sortMaterial){hideFlags=HideFlags.HideAndDontSave},a=Target(source),b=Target(source),published=Target(source)};
+                    state.orders.Add(camera,order);
+                }
+                var matrix=source.cloud.localToWorldMatrix;var forward=camera.transform.forward;
+                var direction=new Vector3(Vector3.Dot(matrix.GetColumn(0),forward),Vector3.Dot(matrix.GetColumn(1),forward),Vector3.Dot(matrix.GetColumn(2),forward));
+                if(!order.sorting&&(!order.hasOrder||Vector3.Angle(direction,order.direction)>=source.angleThreshold))
+                {
+                    order.pending=direction;order.sort.SetTexture("_Positions",source.positions);order.sort.SetInt("_Width",source.width);order.sort.SetInt("_Count",source.count);order.sort.SetVector("_Direction",direction);
+                    order.pendingPosition=camera.transform.position;
+                    order.sort.SetInt("_SortMode",0);
+                    Graphics.Blit(source.positions,order.a,order.sort,0);order.current=order.a;order.next=order.b;order.stage=2;order.step=1;order.sorting=true;
+                }
+                double now=EditorApplication.timeSinceStartup;
+                if(order.sorting&&now-order.lastAdvance>=1.0/60)
+                {
+                    order.lastAdvance=now;
+                    // Finish the first order before this camera can draw an unrelated
+                    // imported or another camera's order. Later changes keep the budget.
+                    int budget=order.hasOrder?Mathf.Clamp(source.passesPerFrame,1,32):512;
+                    for(int i=0;i<budget&&order.sorting;i++)
+                    {
+                        order.sort.SetInt("_Stage",order.stage);order.sort.SetInt("_Step",order.step);Graphics.Blit(order.current,order.next,order.sort,1);
+                        var old=order.current;order.current=order.next;order.next=old;order.step>>=1;
+                        if(order.step==0){order.stage<<=1;order.step=order.stage>>1;}
+                        if(order.stage>source.capacity)
+                        {
+                            Graphics.Blit(order.current,order.published,order.sort,2);
+                            order.direction=order.pending;order.position=order.pendingPosition;order.hasOrder=true;order.sorting=false;
+                        }
+                    }
+                }
+                foreach(var m in state.materials)m.SetTexture("_Order",order.hasOrder?order.published:state.originals[0].GetTexture("_Order"));
+                if(camera.cameraType==CameraType.SceneView&&order.sorting)SceneView.RepaintAll();
+            }
+            }
+            finally{RenderTexture.active=previousTarget;}
         }
         [MenuItem("Tools/Prempi Gaussian DX11/Preview selected cloud")]
-        public static void Preview()
-        {
-            if(EditorApplication.isPlaying)throw new InvalidOperationException("Use this menu in Edit mode");
-            var selected=Selection.activeGameObject;
-            var source=selected!=null?selected.GetComponentInParent<NeonQuestGaussian>():null;
-            if(source==null&&selected!=null)source=selected.GetComponentInChildren<NeonQuestGaussian>(true);
-            if(source==null)throw new InvalidOperationException("Select the Gaussian renderer prefab in the Hierarchy");
-            StopCore();StartPreview(source);
-        }
-        private static void StartPreview(NeonQuestGaussian source)
-        {
-            cloud=source;SessionState.SetInt(ResumeKey,source.gameObject.GetInstanceID());UdonSharpEditorUtility.CopyUdonToProxy(cloud);
-            renderers=cloud.cloud.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.sharedMaterial!=null&&r.sharedMaterial.shader.name=="NeonQuest/VRChat/Gaussian Sorted DX11").OrderBy(r=>r.sharedMaterial.renderQueue).ToArray();
-            originals=renderers.Select(r=>r.sharedMaterial).ToArray();temporary=cloud.drawMaterials.Select(m=>new Material(m){hideFlags=HideFlags.HideAndDontSave}).ToArray();
-            sort=new Material(cloud.sortMaterial){hideFlags=HideFlags.HideAndDontSave};a=Target();b=Target();Resume();SceneView.RepaintAll();
-        }
-        private static RenderTexture Target()
-        {
-            var target=new RenderTexture(cloud.width,cloud.capacity/cloud.width,0,RenderTextureFormat.RGFloat,RenderTextureReadWrite.Linear){filterMode=FilterMode.Point,wrapMode=TextureWrapMode.Clamp,hideFlags=HideFlags.HideAndDontSave};target.Create();return target;
-        }
-        private static void Draw(SceneView view)
-        {
-            if(cloud==null||view.camera==null||Event.current.type!=EventType.Repaint||EditorApplication.timeSinceStartup<nextSort)return;
-            Vector3 forward=view.camera.transform.forward;Matrix4x4 matrix=cloud.cloud.localToWorldMatrix;
-            Vector3 direction=new Vector3(Vector3.Dot(matrix.GetColumn(0),forward),Vector3.Dot(matrix.GetColumn(1),forward),Vector3.Dot(matrix.GetColumn(2),forward));
-            if(lastDirection!=Vector3.zero&&Vector3.Angle(direction,lastDirection)<.25f)return;
-            lastDirection=direction;nextSort=EditorApplication.timeSinceStartup+.1;
-            sort.SetTexture("_Positions",cloud.positions);sort.SetInt("_Width",cloud.width);sort.SetInt("_Count",cloud.count);sort.SetVector("_Direction",direction);Graphics.Blit(cloud.positions,a,sort,0);
-            var current=a;var next=b;
-            for(int stage=2;stage<=cloud.capacity;stage<<=1)for(int step=stage>>1;step>0;step>>=1)
-            {sort.SetInt("_Stage",stage);sort.SetInt("_Step",step);Graphics.Blit(current,next,sort,1);var old=current;current=next;next=old;}
-            foreach(var material in temporary)material.SetTexture("_Order",current);view.Repaint();
-        }
-        private static void Restore(){if(renderers==null)return;for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].sharedMaterial=originals[i];}
-        private static void Resume(){if(cloud==null||renderers==null)return;for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].sharedMaterial=temporary[i];}
-        internal static void SaveGuard(){Restore();if(cloud!=null)EditorApplication.delayCall+=Resume;}
+        public static void Preview(){paused=false;nextDiscover=0;Update();SceneView.RepaintAll();}
         [MenuItem("Tools/Prempi Gaussian DX11/Stop temporary preview")]
-        public static void Stop(){SessionState.SetInt(ResumeKey,0);StopCore();}
-        private static void StopCore()
+        public static void Stop(){paused=true;Clear();}
+        private static void Clear(){foreach(var state in states.Values)state.Dispose();states.Clear();nextDiscover=0;}
+        internal static void SaveGuard()
         {
-            Restore();if(temporary!=null)foreach(var material in temporary)Object.DestroyImmediate(material);if(sort!=null)Object.DestroyImmediate(sort);if(a!=null)Object.DestroyImmediate(a);if(b!=null)Object.DestroyImmediate(b);
-            cloud=null;renderers=null;originals=null;temporary=null;sort=null;a=b=null;lastDirection=Vector3.zero;
+            foreach(var state in states.Values)state.Restore();
+            EditorApplication.delayCall+=()=>{if(CanPreview())foreach(var state in states.Values)state.Apply();};
         }
     }
     internal sealed class GaussianDX11PackageSaveGuard:AssetModificationProcessor
