@@ -1,8 +1,9 @@
 {
   "name": "UnityGaussianSplatting-DX11-VRChat",
-  "version": "0.1.1-preview",
+  "version": "0.1.2-preview",
   "sourceOnly": true,
-  "coreSourcesUnchanged": true,
+  "coreSourcesUnchanged": false,
+  "sourceRevisionDate": "2026-10-14",
   "license": "MIT",
   "files": [
     {
@@ -12,23 +13,33 @@
     },
     {
       "path": "DATA_LAYOUT.md",
-      "bytes": 4946,
-      "sha256": "beef18486826fb80a52e29fca5378a111fd7e20fc2ca04266d153edd7bf15c67"
-    },
-    {
-      "path": "Editor/GaussianDX11PackagePreview.cs",
-      "bytes": 6156,
-      "sha256": "e1249eff9ff8c7182493a359e97e448d8c12fd12db1d45a30a6a71b00567b35f"
-    },
-    {
-      "path": "Editor/GaussianDX11PackagePreview.cs.meta",
-      "bytes": 243,
-      "sha256": "31b517ffc06d89de7c727e9be434914424f4a06098f7e1d540acbe4037df24d2"
+      "bytes": 5577,
+      "sha256": "77bebb61e70dc26473626e3cfbf87c28b318f5d8179e81d7da8cd657c7c82918"
     },
     {
       "path": "Editor.meta",
       "bytes": 180,
       "sha256": "f15f73fdd481cfa99681f2e9acc93b3f536449ba00a68dca519535ae0874b9a4"
+    },
+    {
+      "path": "Editor/GaussianDX11OrderSaveGuard.cs",
+      "bytes": 2063,
+      "sha256": "4467a76cd23fa54cdd4c3505a4f0f475a364ea5a5edac5b0f737e1a362558205"
+    },
+    {
+      "path": "Editor/GaussianDX11OrderSaveGuard.cs.meta",
+      "bytes": 240,
+      "sha256": "f8273b2e31f4150b16e422db29bb1d20056d6e1182a5b8aab05c23bc5db60362"
+    },
+    {
+      "path": "Editor/GaussianDX11PackagePreview.cs",
+      "bytes": 10020,
+      "sha256": "d8cd36078b0e389de443cd887fcbaf5d4325060c10514b303abf2020e4323be1"
+    },
+    {
+      "path": "Editor/GaussianDX11PackagePreview.cs.meta",
+      "bytes": 243,
+      "sha256": "31b517ffc06d89de7c727e9be434914424f4a06098f7e1d540acbe4037df24d2"
     },
     {
       "path": "LICENSE.md",
@@ -37,23 +48,13 @@
     },
     {
       "path": "README.de.md",
-      "bytes": 7242,
-      "sha256": "0a5feee5b14193ff6756c10af8eb846d7998fb22589c92009f2be31d589db7db"
+      "bytes": 9629,
+      "sha256": "87c50d9aa1e0a8e70f17ffe11da839c51b3113031325aff67e373ef906312806"
     },
     {
       "path": "README.md",
-      "bytes": 7309,
-      "sha256": "bdb14abb756e4457006b288a2310e39106fc28f5bf17bbe1bdd3da7e46374cce"
-    },
-    {
-      "path": "Runtime/NeonQuestGaussian.cs",
-      "bytes": 3166,
-      "sha256": "91c2d52c1e2228f64290229ced3626f44f5770337bb933547f93076a15f1b1dc"
-    },
-    {
-      "path": "Runtime/NeonQuestGaussian.cs.meta",
-      "bytes": 243,
-      "sha256": "0b94e1d534431c7f6554b20f7d23444529000bcbd6af43c14a12805c402921b3"
+      "bytes": 9437,
+      "sha256": "2413af1e777f6ba2ece61a6490b7a45e006d69d55a92a98104b1a55e1c7e37ff"
     },
     {
       "path": "Runtime.meta",
@@ -61,9 +62,24 @@
       "sha256": "e43dec0b54472de8e7832ecec5e05e2e3de6ddb42ce5d46865ff29f700d72945"
     },
     {
+      "path": "Runtime/NeonQuestGaussian.cs",
+      "bytes": 6603,
+      "sha256": "2501cd9fc7ae990b387634523a4ee6835ffd4aa58b8bbb9f9881d0514e7a24e4"
+    },
+    {
+      "path": "Runtime/NeonQuestGaussian.cs.meta",
+      "bytes": 243,
+      "sha256": "0b94e1d534431c7f6554b20f7d23444529000bcbd6af43c14a12805c402921b3"
+    },
+    {
+      "path": "Shaders.meta",
+      "bytes": 180,
+      "sha256": "d433c0ea058af16d3acd0e1820ac28148058de71f4a9d22606176c1ba3d91157"
+    },
+    {
       "path": "Shaders/NeonQuestGaussianSort.shader",
-      "bytes": 1418,
-      "sha256": "840dd01c092d635e95bc4b2b7d7a763b04618d0c733ee73ba68ea738e7decd44"
+      "bytes": 2104,
+      "sha256": "a9b2426651d49fe3f64c74480f1b05e543666d2ee4f0662992cbe4a040127d48"
     },
     {
       "path": "Shaders/NeonQuestGaussianSort.shader.meta",
@@ -72,18 +88,13 @@
     },
     {
       "path": "Shaders/NeonQuestGaussianSorted.shader",
-      "bytes": 4443,
-      "sha256": "cfa7303b1fecb5cf467fcd46f9b378adc2ca5c6b061a368e91b18c6c2add63b4"
+      "bytes": 4592,
+      "sha256": "9c9139a124aceb6151ed5e1048d945f1d28695daabbbbc5b7b09221f3cb201b4"
     },
     {
       "path": "Shaders/NeonQuestGaussianSorted.shader.meta",
       "bytes": 204,
       "sha256": "a7d70c1e6fb98104efe4b34d8a074be0b94bb0ca1a039a05fe8d258b824c36db"
-    },
-    {
-      "path": "Shaders.meta",
-      "bytes": 180,
-      "sha256": "d433c0ea058af16d3acd0e1820ac28148058de71f4a9d22606176c1ba3d91157"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -92,8 +103,8 @@
     },
     {
       "path": "VALIDATION.json",
-      "bytes": 2442,
-      "sha256": "c86f72b2891ad36a40e89598c4576deddce51d1ed4579302913db35cea03e861"
+      "bytes": 3817,
+      "sha256": "ab2946cc2b708e64e2364481f32bab3e8cb3f2f65163425b80119a359d2d5c7b"
     }
   ],
   "manifestNote": "This manifest does not hash itself.",
