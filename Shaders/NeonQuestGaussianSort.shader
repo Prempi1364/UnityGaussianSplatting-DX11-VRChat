@@ -46,6 +46,34 @@ Shader "NeonQuest/VRChat/Gaussian Sort"
    // rows between render contexts and change the global point draw order.
    return _MainTex.Load(Pixel(Index(i.pos)));
   }
+  float2 SelectPair(uint id, uint distance, float2 a, float2 b)
+  {
+   bool aLess=a.x<b.x || (a.x==b.x && a.y<b.y);
+   bool takeMin=((id&(uint)_Stage)==0)==((id&distance)==0);
+   return takeMin ? (aLess?a:b) : (aLess?b:a);
+  }
+  float2 CompareTwoAt(uint id, uint distance)
+  {
+   // Fuse two consecutive compare steps within one bitonic stage. Both
+   // intermediate values are reconstructed from the same input texture.
+   uint second=distance>>1;
+   uint other=id^second;
+   float2 a=SelectPair(id,distance,_MainTex.Load(Pixel(id)).xy,_MainTex.Load(Pixel(id^distance)).xy);
+   float2 b=SelectPair(other,distance,_MainTex.Load(Pixel(other)).xy,_MainTex.Load(Pixel(other^distance)).xy);
+   return SelectPair(id,second,a,b);
+  }
+  float4 CompareTwo(v2f_img i):SV_Target
+  {
+   return float4(CompareTwoAt(Index(i.pos),(uint)_Step),0,0);
+  }
+  float4 CompareThree(v2f_img i):SV_Target
+  {
+   // Reconstruct both second-step results from eight original texels, then
+   // apply the third compare. No intermediate GPU texture is needed.
+   uint id=Index(i.pos), distance=(uint)_Step, third=distance>>2;
+   float2 a=CompareTwoAt(id,distance), b=CompareTwoAt(id^third,distance);
+   return float4(SelectPair(id,third,a,b),0,0);
+  }
   ENDCG
   Pass
   {
@@ -69,6 +97,22 @@ Shader "NeonQuest/VRChat/Gaussian Sort"
    #pragma target 4.0
    #pragma vertex vert_img
    #pragma fragment Publish
+   ENDCG
+  }
+  Pass
+  {
+   CGPROGRAM
+   #pragma target 4.0
+   #pragma vertex vert_img
+   #pragma fragment CompareTwo
+   ENDCG
+  }
+  Pass
+  {
+   CGPROGRAM
+   #pragma target 4.0
+   #pragma vertex vert_img
+   #pragma fragment CompareThree
    ENDCG
   }
  }
