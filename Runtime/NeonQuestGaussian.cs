@@ -118,9 +118,12 @@ public class NeonQuestGaussian : MonoBehaviour
         for(int i=0;i<budget&&sorting;i++)
         {
             sortMaterial.SetInt("_Stage",stage);sortMaterial.SetInt("_Step",step);
-            SortBlit(current,next,1);
+            // One GPU pass can evaluate up to three successive compare steps without
+            // exposing an intermediate order or increasing the blit budget.
+            int compareSteps=step>=4?3:step>=2?2:1;
+            SortBlit(current,next,compareSteps==3?4:compareSteps==2?3:1);
             RenderTexture old=current;current=next;next=old;
-            step>>=1;
+            step>>=compareSteps;
             if(step==0){stage<<=1;step=stage>>1;}
             if(stage>capacity)
             {
